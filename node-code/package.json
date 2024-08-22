@@ -1,0 +1,16 @@
+{
+  "name": "aws-marketplace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "start.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-marketplace-catalog": "^3.629.0",
+    "aws-sdk": "^2.1678.0",
+    "winston": "^3.14.2"
+  }
+}

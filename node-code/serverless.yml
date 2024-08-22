@@ -1,0 +1,71 @@
+service: aws-marketplace-integration
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-south-1
+  environment:
+    webpageURL: https://test-bucket-sf-marketplace.s3.ap-south-1.amazonaws.com
+    aws_region: ap-south-1
+    userTable: subscriberTable
+    LOG_LEVEL: debug
+
+functions:
+  redirectToRegister:
+    handler: redirect.handler
+    events:
+      - http:
+          path: register
+          method: post
+  saveUserData:
+    handler: subscription.handler
+    events:
+      - http:
+          path: subscribe
+          method: post
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - x-amz-id-token
+              - Cache-Control
+              - Pragma
+              - Expires
+  entitlement:
+    handler: entitlement.handler
+    # events:
+    #   - sns: arn:aws:sns:us-east-1:287250355862:aws-mp-entitlement-notification-8p9kre7hksxi66ebncc9j2xdz
+  ddbStream:
+    handler: action.handler
+    events:
+      - stream:
+          type: dynamodb
+          batchSize: 1
+          startingPosition: LATEST
+          arn:
+            Fn::GetAtt:
+              - subscriberTable
+              - StreamArn
+    
+resources: # CloudFormation template syntax from here on.
+  Resources:
+    subscriberTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: subscriberTable
+        AttributeDefinitions:
+          - AttributeName: customerIdentifier
+            AttributeType: S
+        KeySchema:
+          - AttributeName: customerIdentifier
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
