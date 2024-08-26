@@ -1,18 +1,12 @@
-const winston = require('winston');
+"use strict";
+
 const AWS = require('aws-sdk');
-const SNS = new AWS.SNS({ apiVersion: '2010-03-31' });
-const { SupportSNSArn: TopicArn } = process.env;
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.Console(),
-  ],
-});
+const {ENV_VARS:ENV} = require("./constants");
+const { SupportSNSArn: TopicArn,} = ENV;
+const {logger} = require("./utils")
 
 
 exports.handler = async (event, context) => {
-  console.log(event);
   await Promise.all(event.Records.map(async (record) => {
     logger.defaultMeta = { requestId: context.awsRequestId };
     logger.debug('event', { 'data': event });
@@ -53,8 +47,6 @@ exports.handler = async (event, context) => {
     if (grantAccess || revokeAccess || entitlementUpdated) {
       let message = '';
       let subject = '';
-
-
       if (grantAccess) {
         subject = 'New AWS Marketplace Subscriber';
         message = `subscribe-success: ${JSON.stringify(newImage)}`;

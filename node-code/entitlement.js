@@ -1,17 +1,26 @@
-const aws_region = process.env.aws_region;
+"use strict";
+
 const AWS = require('aws-sdk');
-const marketplaceEntitlementService = new AWS.MarketplaceEntitlementService({ apiVersion: '2017-01-11', region: 'us-east-1' });
-const dynamodb = new AWS.DynamoDB({ apiVersion: '2012-08-10', region: aws_region });
+const { aws_region } = require("./constants").ENV_VARS;
+const { mp_region } = require("./constants").AWS_MP;
+
+const marketplaceEntitlementService = new AWS.MarketplaceEntitlementService({
+  apiVersion: '2017-01-11',
+  region: mp_region
+});
+
+const dynamodb = new AWS.DynamoDB({
+  apiVersion: '2012-08-10',
+  region: aws_region
+});
 
 exports.handler = async (event) => {
   await Promise.all(event.Records.map(async (record) => {
-    console.log(JSON.stringify(record));
-    let { Message: message } = record.Sns;
-    
+    const { body } = record;
+    let { Message: message } = JSON.parse(body);
     if (typeof message === 'string' || message instanceof String) {
       message = JSON.parse(message);
     }
-    
     if (message.action === 'entitlement-updated') {
       const entitlementParams = {
         ProductCode: message['product-code'],
@@ -23,7 +32,7 @@ exports.handler = async (event) => {
       const entitlementsResponse = await marketplaceEntitlementService.getEntitlements(entitlementParams).promise();
       console.log('entitlementsResponse', entitlementsResponse);
 
-      const isExpired = entitlementsResponse.hasOwnProperty("Entitlements") === false || entitlementsResponse.Entitlements.length === 0 || 
+      const isExpired = entitlementsResponse.hasOwnProperty("Entitlements") === false || entitlementsResponse.Entitlements.length === 0 ||
         new Date(entitlementsResponse.Entitlements[0].ExpirationDate) < new Date();
 
       const dynamoDbParams = {

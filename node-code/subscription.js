@@ -1,11 +1,13 @@
 "use strict";
-const aws_region = process.env.aws_region;
 const AWS = require('aws-sdk');
+const { aws_region } = require("./constants").ENV_VARS;
+const { SendEmail } = require("./utils");
+
 const marketplacemetering = new AWS.MarketplaceMetering({ apiVersion: '2016-01-14', region: aws_region });
 const dynamodb = new AWS.DynamoDB({ apiVersion: '2012-08-10', region: aws_region });
 
-exports.handler = async (event, context) => {
-    console.log(event.body);
+exports.handler = async (event) => {
+  console.log(event.body);
   const {
     // Accept form inputs from ../web/index.html
     regToken, companyName, contactPerson, contactPhone, contactEmail,
@@ -18,8 +20,8 @@ exports.handler = async (event, context) => {
       };
 
       const resolveCustomerResponse = await marketplacemetering
-      .resolveCustomer(resolveCustomerParams)
-      .promise();
+        .resolveCustomer(resolveCustomerParams)
+        .promise();
 
       const { CustomerIdentifier, ProductCode, CustomerAWSAccountId } = resolveCustomerResponse;
       const datetime = new Date().getTime().toString();
@@ -32,25 +34,18 @@ exports.handler = async (event, context) => {
           email: { S: contactEmail },
           customerIdentifier: { S: CustomerIdentifier },
           productCode: { S: ProductCode },
-          customerAWSAccountID: { S: CustomerAWSAccountId },          
+          customerAWSAccountID: { S: CustomerAWSAccountId },
           created: { S: datetime },
         },
       };
-
       await dynamodb.putItem(dynamoDbParams).promise();
-
+      const body = '"<!DOCTYPE html><html><head><title>Welcome!<\/title><\/head><body><h1>Welcome!<\/h1><p>Thanks for purchasing<\/p><p>We\u2019re thrilled to have you on board. Our team is hard at work setting up your account, please expect to hear from a member of our customer success team soon<\/p><\/body><\/html>';
+      const subject = 'Welcome Email'
+      await SendEmail(contactEmail, subject, body);
     }
     catch (error) {
       console.error(error);
     }
   }
-  const response = {
-      statusCode: 200,
-      body: event.body,
-      headers: {
-        'Access-Control-Allow-Origin': process.env.webpageURL,
-        'Access-Control-Allow-Credentials': true,
-      }
-  };
-  return response;
+  return SendResponse(event.body);
 };
