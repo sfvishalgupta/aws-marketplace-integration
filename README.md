@@ -60,3 +60,7 @@ AWS Marketplace strongly recommends automating the access and environment manage
 ### Admin API
 
 ## Functions Created
+Below are the list of function created for integration of **AWS Marketplace**.
+
+1. **redirectToRegister(register.js)**
+2. **GrantRevokeAccess(grant-revoke-access-to-product.js)**
