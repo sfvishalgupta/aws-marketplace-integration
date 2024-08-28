@@ -42,7 +42,7 @@ const handleFormSubmit = (event) => {
 
     xhr.open('POST', postUrl, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('x-api-key', '5WG0ggGu8Aacp3oZI2HJr3t6uwURNvnq8w0Ey4rU');
+    xhr.setRequestHeader('x-api-key', 'T5R1g2aXXW3hPsiNS2SdJ7Ns5v3cbDmd6PsZhxsi');
     xhr.send(JSON.stringify(data));
 
     xhr.onreadystatechange = () => {

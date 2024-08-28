@@ -3,6 +3,7 @@
 const AWS = require('aws-sdk');
 const { aws_region } = require("./constants").ENV_VARS;
 const { mp_region } = require("./constants").AWS_MP;
+const { MESSAGE_ACTION } = require("./constants");
 
 const marketplaceEntitlementService = new AWS.MarketplaceEntitlementService({
   apiVersion: '2017-01-11',
@@ -21,7 +22,7 @@ exports.handler = async (event) => {
     if (typeof message === 'string' || message instanceof String) {
       message = JSON.parse(message);
     }
-    if (message.action === 'entitlement-updated') {
+    if (message.action.toLowerCase() === MESSAGE_ACTION.ENTITLEMENT_UPDATED.toLowerCase()) {
       const entitlementParams = {
         ProductCode: message['product-code'],
         Filter: {

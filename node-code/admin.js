@@ -222,9 +222,9 @@ longDescription="\\\"This is a Long Description\\\""
 //   "changeName": "CreateOfferChange",
 //   "details": "{\"ProductId\":\"prod-ofiabhqu3v2vy\"}"
 // }
-exports.handler({
-  body: JSON.stringify({
-    type: "getOfferDetails",
-    "entityId": "prod-lp5dq7gziiuyi"
-  })
-})
+// exports.handler({
+//   body: JSON.stringify({
+//     type: "getOfferDetails",
+//     "entityId": "prod-lp5dq7gziiuyi"
+//   })
+// })

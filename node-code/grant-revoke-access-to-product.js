@@ -1,10 +1,10 @@
 "use strict";
 
 const AWS = require('aws-sdk');
-const {ENV_VARS:ENV} = require("./constants");
-const { SupportSNSArn: TopicArn,} = ENV;
-const {logger} = require("./utils")
-
+const { ENV_VARS: ENV, MESSAGE_ACTION } = require("./constants");
+const { SupportSNSArn: TopicArn, } = ENV;
+const { logger } = require("./utils");
+const SNS = new AWS.SNS({ apiVersion: '2010-03-31' });
 
 exports.handler = async (event, context) => {
   await Promise.all(event.Records.map(async (record) => {
@@ -49,13 +49,13 @@ exports.handler = async (event, context) => {
       let subject = '';
       if (grantAccess) {
         subject = 'New AWS Marketplace Subscriber';
-        message = `subscribe-success: ${JSON.stringify(newImage)}`;
+        message = `${MESSAGE_ACTION.SUBSCRIBE_SUCCESS}# ${JSON.stringify(newImage)}`;
       } else if (revokeAccess) {
         subject = 'AWS Marketplace customer end of subscription';
-        message = `unsubscribe-success: ${JSON.stringify(newImage)}`;
+        message = `${MESSAGE_ACTION.UNSUBSCRIBE_SUCCESS}# ${JSON.stringify(newImage)}`;
       } else if (entitlementUpdated) {
         subject = 'AWS Marketplace customer change of subscription';
-        message = `entitlement-updated: ${JSON.stringify(newImage)}`;
+        message = `${MESSAGE_ACTION.ENTITLEMENT_UPDATED}# ${JSON.stringify(newImage)}`;
       }
 
       const SNSparams = {
@@ -66,10 +66,12 @@ exports.handler = async (event, context) => {
 
       logger.info('Sending notification');
       logger.debug('SNSparams', { 'data': SNSparams });
-      // await SNS.publish(SNSparams).promise();
+
+      if (typeof TopicArn != "undefined") {
+        const response = await SNS.publish(SNSparams).promise();
+        logger.debug("SNS Publish Response", { data: response })
+      }
     }
   }));
-
-
   return {};
 };

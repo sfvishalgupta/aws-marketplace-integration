@@ -31,6 +31,7 @@ provider:
     SMTP_USER: ${self:custom.config.smtp_user}
     SMTP_PASSWORD: ${self:custom.config.smtp_password}
     SMTP_HOST: ${self:custom.config.smtp_host}
+    AWSMarketplaceADMIN: ${self:custom.config.marketplaceAdminEmail}
     
   iam:
     role:
@@ -51,27 +52,16 @@ provider:
         rateLimit: 5
 
 functions:
-  redirectToRegister:
+  RedirectToRegister:
     handler: redirect.handler
     events:
       - http:
           path: register
           method: post
-  saveUserData:
-    handler: subscription.handler
-    events:
-      - http:
-          path: subscribe
-          method: post
-          private: true
-          cors: ${self:custom.cors}
-  entitlement:
-    handler: entitlement.handler
-    events:
-      - sqs:
-          arn: !GetAtt AWSMarketplaceEntitlementQueue.Arn     
-  ddbStream:
-    handler: action.handler
+  GrantRevokeAccess:
+    handler: grant-revoke-access-to-product.handler
+    environment:
+      SupportSNSARN: !Ref SupportSNS
     events:
       - stream:
           type: dynamodb
@@ -81,13 +71,26 @@ functions:
             Fn::GetAtt:
               - AWSMarketplaceSubscribers
               - StreamArn
-  meteringHourlyJob:
+  SubscribeUser:
+    handler: subscribe-user.handler
+    events:
+      - http:
+          path: subscribe
+          method: post
+          private: true
+          cors: ${self:custom.cors}
+  Entitlement:
+    handler: entitlement-sqs.handler
+    events:
+      - sqs:
+          arn: !GetAtt AWSMarketplaceEntitlementQueue.Arn
+  MeteringHourlyJob:
     handler: meteringHourlyJob.handler
     events:
       - schedule:
           rate: rate(24 hours)
           enabled: true
-  adminJobs:
+  AdminJobs:
     handler: admin.handler
     environment:
       aws_mp_product_code: ${self:custom.config.aws_mp_product_code}
@@ -97,6 +100,12 @@ functions:
           method: post
           private: true
           cors: ${self:custom.cors}
+  SetupResources:
+    handler: setup-resources.handler
+    events:
+      - sns:
+          arn: !Ref SupportSNS
+          topicName: SupportSNSTopic
 
 resources: # CloudFormation template syntax from here on.
   Resources:
@@ -139,6 +148,11 @@ resources: # CloudFormation template syntax from here on.
         DelaySeconds: 0
         MessageRetentionPeriod: 345600 # 4 days
         VisibilityTimeout: 30
+    SupportSNS:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: 'Support SNS'
+        TopicName: SupportSNSTopic
     # SNSTopicToMyQueuePolicy:
     #   Type: AWS::SQS::QueuePolicy
     #   Properties:
