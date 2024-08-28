@@ -19,7 +19,9 @@ module.exports.AWS_MP = {
   "entityType": "SaaSProduct",
   "mp_region": process.env.mp_region || "us-east-1",
   "aws_mp_product_code": process.env.aws_mp_product_code || "57nu7db29fmunuzszlr96ihtt",
-  "MarketplaceAdminEmail": process.env.AWSMarketplaceADMIN || ""
+  "MarketplaceAdminEmail": process.env.AWSMarketplaceADMIN || "",
+  "EntityId": process.env.EntityId || "",
+  "EntityARN": process.env.EntityARN || ""
 }
 
 module.exports.STRINGS = {
@@ -30,7 +32,7 @@ module.exports.STRINGS = {
   ACTION_GET_PRODUCT_DETAILS: "getProductDetails",
   ACTION_GET_OFFER_DETAILS: "getOfferDetails",
   ACTION_CREATE_OFFER: "createOffer",
-  ENTITY_TYPE_PRODUCT: "SaaSProduct",
+  ENTITY_TYPE_PRODUCT: "SaaSProduct@1.0",
   ENTITY_TYPE_OFFER: "Offer"
 }
 
@@ -60,5 +62,8 @@ module.exports.EMAIL_TEMPLATE = {
 }
 
 module.exports.REQUEST_TYPE = {
-  DELETE: "delete"
+  CREATE: "create",
+  DELETE: "delete",
+  INIT: "init",
+  UPDATE: "update",
 }

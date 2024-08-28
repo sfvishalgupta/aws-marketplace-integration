@@ -61,7 +61,7 @@ AWS Marketplace strongly recommends automating the access and environment manage
 ### Admin APIs
 
 ### Architecture Diatram
-![](./node-code/marketplace.jpg)
+![](./misc/marketplace.jpg)
 
 ## Functions Created
 Below are the list of function created for integration of **AWS Marketplace**.

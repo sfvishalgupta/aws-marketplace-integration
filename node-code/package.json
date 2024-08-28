@@ -5,9 +5,10 @@
   "main": "start.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc --outDir bin",
     "make-config": "aws ssm get-parameter --name MarketplaceDevConfig --query 'Parameter' | jq -rc '.Value ' > config.json",
-    "deploy": "npm run s3-sync && sls deploy",
-    "s3-sync": "cd web && aws s3 cp --recursive ./ s3://test-bucket-sf-marketplace --acl public-read"
+    "deploy": "npm run tsc && npm run s3-sync && sls deploy",
+    "s3-sync": "export UIBucketName=$(jq -rc .UIBucketName < config.json) && cd ../web && aws s3 cp --recursive ./ s3://$UIBucketName --acl public-read"
   },
   "author": "",
   "license": "ISC",

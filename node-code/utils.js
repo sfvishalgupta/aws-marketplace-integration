@@ -50,18 +50,17 @@ module.exports.SendResponse = body => {
   };
 }
 
-module.exports.SendResponseToContext = async (event, context, responseStatus, responseData, physicalResourceId) => {
-  const reason = responseStatus === "FAILED"
-    ? "See the details in CloudWatch Log Stream: " + context.logStreamName
-    : undefined;
+module.exports.SendResponseToContext = async (event, context, responseStatus) => {
+  const reason = responseStatus === "FAILED" 
+    ? "See the details in CloudWatch Log Stream: " + context.logStreamName : undefined;
   const responseBody = JSON.stringify({
     StackId: event.StackId,
     RequestId: event.RequestId,
     Status: responseStatus,
     Reason: reason,
-    PhysicalResourceId: physicalResourceId || context.logStreamName,
+    PhysicalResourceId: context.logStreamName,
     LogicalResourceId: event.LogicalResourceId,
-    Data: responseData
+    Data: {}
   });
   const responseOptions = {
     headers: {

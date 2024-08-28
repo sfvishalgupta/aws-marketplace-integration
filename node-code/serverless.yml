@@ -107,12 +107,16 @@ functions:
           arn: !Ref SupportSNS
           topicName: SupportSNSTopic
   UpdateProductInfo:
-    handler: bin/set-product-info.handler
+    handler: set-product-info.handler
+    environment:
+      EntityId: ${self:custom.config.EntityId}
+      EntityARN: ${self:custom.config.EntityARN}
 
 resources: # CloudFormation template syntax from here on.
   Resources:
     AWSMarketplaceSubscribers:
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
       Properties:
         TableName: AWSMarketplaceSubscribers
         AttributeDefinitions:
@@ -155,6 +159,11 @@ resources: # CloudFormation template syntax from here on.
       Properties:
         DisplayName: 'Support SNS'
         TopicName: SupportSNSTopic
+    UpdateProductInfo:
+      Type: Custom::UpdateProductInfo
+      Properties:
+        ServiceToken: !GetAtt UpdateProductInfoLambdaFunction.Arn
+        key: V2
     # SNSTopicToMyQueuePolicy:
     #   Type: AWS::SQS::QueuePolicy
     #   Properties:

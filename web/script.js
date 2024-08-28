@@ -27,24 +27,18 @@ const getUrlParameter = (name) => {
 const handleFormSubmit = (event) => {
   event.preventDefault();
 
-  const postUrl = `https://xizo4ods0e.execute-api.ap-south-1.amazonaws.com/dev/subscribe`;
   const regToken = getUrlParameter('x-amzn-marketplace-token');
-
   if (!regToken) {
     showAlert('danger',
       'Registration Token Missing. Please go to AWS Marketplace and follow the instructions to set up your account!');
   } else {
     const data = formToJSON(form.elements);
     data.regToken = regToken;
-
-
     const xhr = new XMLHttpRequest();
-
-    xhr.open('POST', postUrl, true);
+    xhr.open('POST', subscribePath, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('x-api-key', 'T5R1g2aXXW3hPsiNS2SdJ7Ns5v3cbDmd6PsZhxsi');
+    xhr.setRequestHeader('x-api-key', apiKey);
     xhr.send(JSON.stringify(data));
-
     xhr.onreadystatechange = () => {
       if (xhr.readyState == XMLHttpRequest.DONE) {
         showAlert('primary', xhr.responseText);
@@ -53,8 +47,6 @@ const handleFormSubmit = (event) => {
     };
   }
 };
-
-
 form.addEventListener('submit', handleFormSubmit);
 
 const regToken = getUrlParameter('x-amzn-marketplace-token');
