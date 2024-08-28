@@ -57,7 +57,7 @@ AWS Marketplace strongly recommends automating the access and environment manage
 
 ### Deploying Code
 
-### Admin API
+### Admin APIs
 
 ## Functions Created
 Below are the list of function created for integration of **AWS Marketplace**.
@@ -89,3 +89,5 @@ This function is called via cloudwatch event to send ussage of resources to AWS 
 This function is used to do admin related jobs like
 - Update fulfilment URL.
 - Update product info.
+
+![](node-code/marketplace.jpg)
