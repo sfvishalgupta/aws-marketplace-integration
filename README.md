@@ -12,6 +12,7 @@ The sample in this repository demonstrates how to use AWS Serverless to integrat
 - [Metering for usage](#metering-for-usage)
 - [Deploying the sample application using Serverless Command Line Interface](#deploying-code)
 - [Admin APIs](#admin-api)
+- [Architecture Diagram](#architecture-diagram)
 
 ### Setup Market Place
 To set up your product on AWS Marketplace, you need to create a product and configure it with the following details
@@ -59,6 +60,9 @@ AWS Marketplace strongly recommends automating the access and environment manage
 
 ### Admin APIs
 
+### Architecture Diatram
+![](./node-code/marketplace.jpg)
+
 ## Functions Created
 Below are the list of function created for integration of **AWS Marketplace**.
 
@@ -90,4 +94,4 @@ This function is used to do admin related jobs like
 - Update fulfilment URL.
 - Update product info.
 
-![](./node-code/marketplace.jpg)
+

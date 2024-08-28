@@ -5,15 +5,16 @@
   "main": "start.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "export-profile": "export AWS_PROFILE=MP_ADMIN",
-    "deploy": "npm run export-profile && npm run s3-sync && sls deploy",
-    "s3-sync": "cd web && npm run export-profile && aws s3 cp --recursive ./ s3://test-bucket-sf-marketplace --acl public-read"
+    "make-config": "aws ssm get-parameter --name MarketplaceDevConfig --query 'Parameter' | jq -rc '.Value ' > config.json",
+    "deploy": "npm run s3-sync && sls deploy",
+    "s3-sync": "cd web && aws s3 cp --recursive ./ s3://test-bucket-sf-marketplace --acl public-read"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-marketplace-catalog": "^3.629.0",
     "aws-sdk": "^2.1678.0",
+    "axios": "^1.7.5",
     "nodemailer": "^6.9.14",
     "winston": "^3.14.2"
   },

@@ -106,6 +106,8 @@ functions:
       - sns:
           arn: !Ref SupportSNS
           topicName: SupportSNSTopic
+  UpdateProductInfo:
+    handler: bin/set-product-info.handler
 
 resources: # CloudFormation template syntax from here on.
   Resources:

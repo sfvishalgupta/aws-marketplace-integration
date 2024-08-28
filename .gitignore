@@ -5,3 +5,7 @@ jspm_packages
 # Serverless directories
 .serverless
 node_code/config.json
+node-code/product-config.json
+.DS_Store
+node-code/bin/
+*test*
