@@ -90,4 +90,4 @@ This function is used to do admin related jobs like
 - Update fulfilment URL.
 - Update product info.
 
-![](node-code/marketplace.jpg)
+![](./node-code/marketplace.jpg)
