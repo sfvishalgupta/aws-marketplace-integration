@@ -57,6 +57,18 @@ In our implementation the `MarketplaceTechAdmin` receives email when the contrac
 AWS Marketplace strongly recommends automating the access and environment management which can be achieved by modifying the `grant-revoke-access-to-product.js` function.
 
 ### Deploying Code
+To setup and deploy code follow below step.
+1. Install AWS CLI and configure a profile.
+2. Install Serverless
+3. Update config in Parameter Store.
+4. Run below command inside node-code folder to get the config.
+    ```javascript
+    npm run make-config
+    ```
+5. Run below command to deploy the code
+  ```bash
+    sls deploy
+  ```
 
 ### Admin APIs
 Below are the apis available for admin to update product & offer information.
