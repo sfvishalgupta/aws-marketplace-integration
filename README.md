@@ -71,12 +71,12 @@ The host/method and auth is common to all APIs
 - **Update Legal Term**
   This will update the legal terms in public offer.
   Events:-
-  1. Standard EULA ([Event](./node-code/events/update_legal_term_standard_eula.json))
-  2. Custom EULA ([Event](./node-code/events/update_legal_term_custom_eula.json))
+  1. Standard EULA ([Sample Payload](./node-code/events/update_legal_term_standard_eula.json))
+  2. Custom EULA ([Sample Payload](./node-code/events/update_legal_term_custom_eula.json))
 
 - **Update Support Term**
   This will update the refund policy of a product.
-  1. Refund Policy ([Event](./node-code/events/update_support_term.json))
+  1. Refund Policy ([Sample Payload](./node-code/events/update_support_term.json))
 
 
 ### Architecture Diagram
