@@ -79,20 +79,29 @@ The host/method and auth is common to all APIs
   Method:-  Post
   Auth:-    private
 ```
+
 #### Product API
+- **Get Product Detail By Id**
+  This api will return the product details by productId, ([Sample Payload](./node-code/events/get_product_details_by_id.json)) 
+- **Update Product Details**
+  This api will update the product details, ([Sample Payload](./node-code/events/update_product_details.json)) 
 - **Update fulfilment**
-  This will update the fulfilment URL of product, ([Sample Payload](./node-code/events/update_fulfilment.json)) 
+  This api will update the fulfilment URL of product, ([Sample Payload](./node-code/events/update_fulfilment.json)) 
+- **Update AWS Allowed Account** 
+  This api will update allowed aws account for a product visibility, ([Sample Payload](./node-code/events/update_allowed_aws_account.json)) 
+
 
 
 #### Offer API.
+- **Get Offer Details By ID**
+  This api will get the offer details by offer id, ([Sample Payload](./node-code/events/get_offer_details_by_id.json))
 - **Update Legal Term**
-  This will update the legal terms in public offer.
+  This api will update the legal terms in public offer.
   Events:-
   1. Standard EULA ([Sample Payload](./node-code/events/update_legal_term_standard_eula.json))
   2. Custom EULA ([Sample Payload](./node-code/events/update_legal_term_custom_eula.json))
-
 - **Update Support Term**
-  This will update the refund policy of a product.
+  This api will update the refund policy of a product.
   1. Refund Policy ([Sample Payload](./node-code/events/update_support_term.json))
 
 
