@@ -79,7 +79,12 @@ The host/method and auth is common to all APIs
   Method:-  Post
   Auth:-    private
 ```
+#### Product API
+- **Update fulfilment**
+  This will update the fulfilment URL of product, ([Sample Payload](./node-code/events/update_fulfilment.json)) 
 
+
+#### Offer API.
 - **Update Legal Term**
   This will update the legal terms in public offer.
   Events:-
