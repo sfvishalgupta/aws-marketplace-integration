@@ -3,6 +3,6 @@
   "entityId": "offer-25tc6r6c6tc64",
   "data": {
     "type": "CustomEula",
-    "url": "https://awsmp-offer-legal-documents-prod-iad.s3.us-east-1.amazonaws.com/prod/arn%3Aaws%3Acatalog%3Aus-east-1%3A%3Aoffer/offer-3f3zkqcd66xle/f05c0e0f-e7ac-4fa3-88f7-afa820fd6265?X-Amz-Security-Token=FwoGZXIvYXdzED0aDG%2BKAleu6xBfEH4nuiKIAtZWVJM%2FcDDinudXv3mhKxxW6dr%2Bcjh5y9n%2BxYCXs1cEJAA55CuH6u4Ry79c6dFKdzGFEqbUtaeZQ%2B26hAOLv%2FVxpsEd0jmUxhUsnAhhBPAZwgarkHIS5lyRwFWYkElEiCJwA3j37oinjlTRfFO7VKxGGjGrO2QBFh%2FF%2B8U0k4TsiOO%2BL5xXUwGGJ7K8yUiwj3EJizebcTTZQLOMsfEBr%2F9Iad1b7qR9sPPbKgmgjS9OCryMsAqEp2lFyvv6IWzAVwSqI%2Fp8D8cAMtB8BaApowYCiM4HWyHGjWHMHyFvgX8EajkBGy8aEjCYov%2BypHlV0236vWmcvtRg4k5abmz3PX6ZGBczjFk9kii4r8G2BjJPpg1fbK%2BcywTiuihSurUPrPOpPHu3ekoAwCfjo6XY0GVKjFdsuG0BrGMhQcXbvPLr%2FigWCKYURdJ0yM1GwH%2BMCQO6eECH0X0OKTdpGziLIg%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240829T111342Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Credential=ASIASPPEMYX2NKBWN6CY%2F20240829%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=4a8f73da17071f4a42e6ca6836542c44137fc5c91e3226c9c39c7c4f5f7f825c"
+    "url": "https://test-bucket-sf-marketplace.s3.ap-south-1.amazonaws.com/eula_sample.pdf"
   }
 }

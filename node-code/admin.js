@@ -116,21 +116,27 @@ const updateAllowedAWSAccount = async (Identifier, BuyerAccounts) => {
 }
 
 const updateAllowedCountries = async (Identifier, CountryCodes) => {
-  return mpCatalog.startChangeSet({
+  let targetCountriesDetails = {};
+  if (typeof CountryCodes == "object" && CountryCodes.length > 0) {
+    targetCountriesDetails = {
+      PositiveTargeting: {
+        CountryCodes
+      }
+    }
+  }
+  const param = {
     Catalog: catalog,
     ChangeSet: [{
       ChangeType: CHANGE_TYPE.UPDATE_TARGETING,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_PRODUCT,
+        Type: STRINGS.ENTITY_TYPE_OFFER,
         Identifier
       },
-      Details: JSON.stringify({
-        PositiveTargeting: {
-          CountryCodes
-        }
-      })
+      Details: JSON.stringify(targetCountriesDetails)
     }]
-  }).promise();
+  };
+  logger.debug("Update Allowed Countries", { param });
+  return mpCatalog.startChangeSet(param).promise();
 }
 
 const createOffer = async (ProductId) => {
@@ -238,7 +244,8 @@ exports.handler = async (event) => {
         result = await createOffer(request.entityId);
         break;
       case STRINGS.ACTION_UPDATE_ALLOWED_COUNTRIES.toLowerCase():
-        result = await updateAllowedCountries(request.entityId, request.data.allowedCountries);
+        console.log("hi")
+        result = await updateAllowedCountries(request.entityId, request.data);
         break;
       case STRINGS.ACTION_UPDATE_SUPPORT_TERM.toLowerCase():
         result = await updateSupportTerm(request.entityId, request.data);
@@ -248,13 +255,14 @@ exports.handler = async (event) => {
         break;
     }
   } catch (e) {
+    throw (e);
     logger.error("Error", { "data": e.message });
   }
   logger.debug("Result", { data: result });
   return SendResponse(JSON.stringify(result));
 }
 
-// const params = require("./events/get_offer_details_by_id.json");
+// const params = require("./events/update_offer_availibility_by_country.json");
 // console.log(params);
 // exports.handler({
 //   body: JSON.stringify(params)
