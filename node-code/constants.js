@@ -21,7 +21,8 @@ module.exports.AWS_MP = {
   "aws_mp_product_code": process.env.aws_mp_product_code || "57nu7db29fmunuzszlr96ihtt",
   "MarketplaceAdminEmail": process.env.AWSMarketplaceADMIN || "",
   "EntityId": process.env.EntityId || "",
-  "EntityARN": process.env.EntityARN || ""
+  "EntityARN": process.env.EntityARN || "",
+  "OfferId": process.env.OfferId || ""
 }
 
 module.exports.STRINGS = {
@@ -32,15 +33,19 @@ module.exports.STRINGS = {
   ACTION_GET_PRODUCT_DETAILS: "getProductDetails",
   ACTION_GET_OFFER_DETAILS: "getOfferDetails",
   ACTION_CREATE_OFFER: "createOffer",
+  ACTION_UPDATE_SUPPORT_TERM: "updateSupportTerm",
+  ACTION_UPDATE_LEGAL_TERM: "updateLegalTerm",
   ENTITY_TYPE_PRODUCT: "SaaSProduct@1.0",
-  ENTITY_TYPE_OFFER: "Offer"
+  ENTITY_TYPE_OFFER: "Offer@1.0"
 }
 
 module.exports.CHANGE_TYPE = {
   ADD_DELIVERY_OPTION: "AddDeliveryOptions",
   UPDATE_DELIVERY_OPTION: "UpdateDeliveryOptions",
   UPDATE_INFORMATION: "UpdateInformation",
-  UPDATE_TARGETING: "UpdateTargeting"
+  UPDATE_TARGETING: "UpdateTargeting",
+  UPDATE_SUPPORT_TERM: "UpdateSupportTerms",
+  UPDATE_LEGAL_TERM: "UpdateLegalTerms"
 }
 
 module.exports.MESSAGE_ACTION = {
@@ -66,4 +71,9 @@ module.exports.REQUEST_TYPE = {
   DELETE: "delete",
   INIT: "init",
   UPDATE: "update",
+}
+
+module.exports.EULA_TYPE = {
+  EULA_STANDARD: "StandardEula",
+  EULA_CUSTOM: "CustomEula"
 }

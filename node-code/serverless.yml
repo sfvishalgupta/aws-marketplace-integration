@@ -111,6 +111,7 @@ functions:
     environment:
       EntityId: ${self:custom.config.EntityId}
       EntityARN: ${self:custom.config.EntityARN}
+      OfferId: ${self:custom.config.OfferId}
 
 resources: # CloudFormation template syntax from here on.
   Resources:
@@ -163,7 +164,7 @@ resources: # CloudFormation template syntax from here on.
       Type: Custom::UpdateProductInfo
       Properties:
         ServiceToken: !GetAtt UpdateProductInfoLambdaFunction.Arn
-        key: V2
+        key: V1
     # SNSTopicToMyQueuePolicy:
     #   Type: AWS::SQS::QueuePolicy
     #   Properties:

@@ -3,8 +3,9 @@ const AWS = require('aws-sdk');
 const { SendResponse, logger } = require("./utils");
 const {
   AWS_MP,
+  CHANGE_TYPE,
+  EULA_TYPE,
   STRINGS,
-  CHANGE_TYPE
 } = require("./constants");
 
 const { catalog, mp_region } = AWS_MP;
@@ -136,7 +137,7 @@ const createOffer = async (ProductId) => {
   return mpCatalog.startChangeSet({
     Catalog: catalog,
     ChangeSet: [{
-      ChangeType: "CreateOffer",
+      ChangeType: CHANGE_TYPE.ACTION_CREATE_OFFER,
       Entity: {
         Type: STRINGS.ENTITY_TYPE_OFFER,
       },
@@ -152,10 +153,67 @@ const listEntitiesOffer = async (ProductId) => {
     FilterList: [
       {
         Name: "ProductId",
-        ValueList : [ProductId]
+        ValueList: [ProductId]
       }
     ]
   }).promise();
+}
+
+const updateLegalTerm = async (OfferId, data) => {
+  let EULADocument = {};
+  switch (data.type.toLowerCase()) {
+    case EULA_TYPE.EULA_STANDARD.toLowerCase():
+      EULADocument = {
+        Type: EULA_TYPE.EULA_STANDARD,
+        Version: data.version
+      }
+      break;
+    case EULA_TYPE.EULA_CUSTOM.toLowerCase():
+      EULADocument = {
+        Type: EULA_TYPE.EULA_CUSTOM,
+        Url: data.url
+      }
+      break;
+  }
+  const param = {
+    Catalog: catalog,
+    ChangeSet: [{
+      ChangeType: CHANGE_TYPE.UPDATE_LEGAL_TERM,
+      Entity: {
+        Type: STRINGS.ENTITY_TYPE_OFFER,
+        Identifier: OfferId
+      },
+      Details: JSON.stringify({
+        "Terms": [{
+          "Type": "LegalTerm",
+          "Documents": [EULADocument]
+        }]
+      })
+    }]
+  };
+  logger.debug("Update EULA Params", { param });
+  return mpCatalog.startChangeSet(param).promise();
+}
+
+const updateSupportTerm = async (OfferId, RefundPolicy) => {
+  const param = {
+    Catalog: catalog,
+    ChangeSet: [{
+      ChangeType: CHANGE_TYPE.UPDATE_SUPPORT_TERM,
+      Entity: {
+        Type: STRINGS.ENTITY_TYPE_OFFER,
+        Identifier: OfferId
+      },
+      Details: JSON.stringify({
+        "Terms": [{
+          Type: "SupportTerm",
+          RefundPolicy
+        }]
+      })
+    }]
+  };
+  logger.debug("Update Support Term", { param });
+  return mpCatalog.startChangeSet(param).promise();
 }
 exports.handler = async (event) => {
   let result = {
@@ -178,18 +236,24 @@ exports.handler = async (event) => {
       case STRINGS.ACTION_UPDATE_ALLOWED_AWS_ACCOUNT.toLowerCase():
         result = await updateAllowedAWSAccount(request.entityId, request.data.allowedAWSAccounts);
         break;
-      case STRINGS.ACTION_UPDATE_ALLOWED_COUNTRIES.toLowerCase():
-        result = await updateAllowedCountries(request.entityId, request.data.allowedCountries);
-        break;
-      case STRINGS.ACTION_CREATE_OFFER.toLowerCase():
-        result = await createOffer(request.entityId);
-        break;
       case STRINGS.ACTION_GET_PRODUCT_DETAILS.toLowerCase():
         result = await describeMP(request.entityId);
         break;
       case STRINGS.ACTION_GET_OFFER_DETAILS.toLowerCase():
         const offer = await listEntitiesOffer(request.entityId);
         result = await describeMP(offer["EntitySummaryList"][0]["EntityId"]);
+        break;
+      case STRINGS.ACTION_CREATE_OFFER.toLowerCase():
+        result = await createOffer(request.entityId);
+        break;
+      case STRINGS.ACTION_UPDATE_ALLOWED_COUNTRIES.toLowerCase():
+        result = await updateAllowedCountries(request.entityId, request.data.allowedCountries);
+        break;
+      case STRINGS.ACTION_UPDATE_SUPPORT_TERM.toLowerCase():
+        result = await updateSupportTerm(request.entityId, request.data);
+        break;
+      case STRINGS.ACTION_UPDATE_LEGAL_TERM.toLowerCase():
+        result = await updateLegalTerm(request.entityId, request.data);
         break;
     }
   } catch (e) {
@@ -227,4 +291,10 @@ longDescription="\\\"This is a Long Description\\\""
 //     type: "getOfferDetails",
 //     "entityId": "prod-lp5dq7gziiuyi"
 //   })
+// })
+
+// const params = require("./events/update_support_term.json");
+// console.log(params);
+// exports.handler({
+//   body: JSON.stringify(params)
 // })

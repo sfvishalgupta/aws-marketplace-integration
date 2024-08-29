@@ -1,5 +1,10 @@
 "use strict";
-const { MESSAGE_ACTION, AWS_MP, EMAIL_SUBJECTS, EMAIL_TEMPLATE } = require("./constants");
+const { 
+  MESSAGE_ACTION, 
+  AWS_MP, 
+  EMAIL_SUBJECTS, 
+  EMAIL_TEMPLATE 
+} = require("./constants");
 const { SendEmail, logger } = require("./utils");
 
 exports.handler = async (event) => {

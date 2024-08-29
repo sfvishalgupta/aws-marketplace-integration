@@ -59,6 +59,18 @@ AWS Marketplace strongly recommends automating the access and environment manage
 ### Deploying Code
 
 ### Admin APIs
+Below are the apis available for admin to update product & offer information.
+
+```javascript
+  Method:- Post
+```
+
+- **Update Legal Term**
+  This will update the legal terms in public offer.
+  Events:-
+  1. Standard EULA
+  2. Custom EULA
+- **Update Support Term**
 
 ### Architecture Diatram
 ![](./misc/marketplace.jpg)
