@@ -103,6 +103,8 @@ The host/method and auth is common to all APIs
 - **Update Support Term**
   This api will update the refund policy of a product.
   1. Refund Policy ([Sample Payload](./node-code/events/update_support_term.json))
+- **Update Offer Availability By Country**
+  This api will update list of countries by availability, ([Sample Payload](./node-code/events/update_support_term.json))
 
 
 ### Architecture Diagram
