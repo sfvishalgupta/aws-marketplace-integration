@@ -11,7 +11,7 @@ The sample in this repository demonstrates how to use AWS Serverless to integrat
 - [Grant and revoke access to your product](#grant-and-revoke-access-to-your-product)
 - [Metering for usage](#metering-for-usage)
 - [Deploying the sample application using Serverless Command Line Interface](#deploying-code)
-- [Admin APIs](#admin-api)
+- [Admin APIs](#admin-apis)
 - [Architecture Diagram](#architecture-diagram)
 
 ### Setup Market Place
@@ -72,7 +72,7 @@ Below are the apis available for admin to update product & offer information.
   2. Custom EULA
 - **Update Support Term**
 
-### Architecture Diatram
+### Architecture Diagram
 ![](./misc/marketplace.jpg)
 
 ## Functions Created
