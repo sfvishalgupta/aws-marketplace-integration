@@ -60,17 +60,22 @@ AWS Marketplace strongly recommends automating the access and environment manage
 
 ### Admin APIs
 Below are the apis available for admin to update product & offer information.
+The host/method and auth is common to all APIs
 
 ```javascript
-  Method:- Post
+  HOST:-    /admin
+  Method:-  Post
+  Auth:-    private
 ```
 
 - **Update Legal Term**
   This will update the legal terms in public offer.
   Events:-
-  1. Standard EULA
-  2. Custom EULA
+  1. Standard EULA ([Event](./node-code/events/update_legal_term_custom_eula.json))
+  2. Custom EULA ([Event](./node-code/events/update_legal_term_custom_eula.json))
 - **Update Support Term**
+  This will update the refund policy of a product.
+
 
 ### Architecture Diagram
 ![](./misc/marketplace.jpg)
