@@ -1,4 +1,4 @@
 {
-  "type": "getProductDetails",
+  "type": "createOffer",
   "entityId": "prod-lnewwjqzy36a2"
 }

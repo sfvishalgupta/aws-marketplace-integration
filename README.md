@@ -88,6 +88,8 @@ The host/method and auth is common to all APIs
   ### Offer API.
   - **Get Offer Details By ID**
     This api will get the offer details by offer id, ([Sample Payload](./node-code/events/get_offer_details_by_id.json))
+  - **Get Offer Id by Product Id** 
+    This api will get offer id by product id, ([Sample Payload](./node-code/events/get_offer_details_by_id.json))
   - **Update Legal Term**
     This api will update the legal terms in public offer.
     Events:-

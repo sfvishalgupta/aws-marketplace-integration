@@ -32,20 +32,30 @@ module.exports.STRINGS = {
   ACTION_UPDATE_ALLOWED_COUNTRIES: "updateAllowedCountries",
   ACTION_GET_PRODUCT_DETAILS: "getProductDetails",
   ACTION_GET_OFFER_DETAILS: "getOfferDetails",
+  ACTION_GET_OFFER_DETAILS_BY_PRODUCT_ID: "getOfferIdByProductid",
   ACTION_CREATE_OFFER: "createOffer",
+  ACTION_CREATE_PRODUCT:"createProduct",
   ACTION_UPDATE_SUPPORT_TERM: "updateSupportTerm",
   ACTION_UPDATE_LEGAL_TERM: "updateLegalTerm",
+  ACTION_ADD_DIMENSION: "addDimension",
+  ACTION_RELEASE_OFFER: "releaseOffer",
   ENTITY_TYPE_PRODUCT: "SaaSProduct@1.0",
-  ENTITY_TYPE_OFFER: "Offer@1.0"
+  ENTITY_TYPE_OFFER: "Offer@1.0",
+  ENTITY_TYPE_OFFER_ONLY: "Offer"
 }
 
 module.exports.CHANGE_TYPE = {
+  CREATE_PRODUCT: "CreateProduct",
+  CREATE_OFFER: "CreateOffer",
   ADD_DELIVERY_OPTION: "AddDeliveryOptions",
+  ADD_DIMENSION: "AddDimensions",
+  RELEASE_OFFER: "ReleaseOffer",
   UPDATE_DELIVERY_OPTION: "UpdateDeliveryOptions",
   UPDATE_INFORMATION: "UpdateInformation",
   UPDATE_TARGETING: "UpdateTargeting",
   UPDATE_SUPPORT_TERM: "UpdateSupportTerms",
-  UPDATE_LEGAL_TERM: "UpdateLegalTerms"
+  UPDATE_LEGAL_TERM: "UpdateLegalTerms",
+  UPDATE_PRICING_TERM:"UpdatePricingTerms"
 }
 
 module.exports.MESSAGE_ACTION = {
@@ -76,4 +86,13 @@ module.exports.REQUEST_TYPE = {
 module.exports.EULA_TYPE = {
   EULA_STANDARD: "StandardEula",
   EULA_CUSTOM: "CustomEula"
+}
+
+module.exports.PRICING_DIMENSION_TYPE = {
+  Entitled: "Entitled",
+}
+
+module.exports.SELLECTION =  {
+  ALLOWED: "Allowed",
+  DISALLOWED: "Disallowed"
 }

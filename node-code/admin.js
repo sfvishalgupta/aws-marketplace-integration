@@ -5,7 +5,7 @@ const {
   AWS_MP,
   CHANGE_TYPE,
   EULA_TYPE,
-  STRINGS,
+  STRINGS
 } = require("./constants");
 
 const { catalog, mp_region } = AWS_MP;
@@ -18,6 +18,44 @@ const describeMP = async (EntityId) => {
     Catalog: catalog,
     EntityId
   }).promise();
+}
+
+/**
+ * This function is used to create new Product in AWS Marketplace type of 
+ * SAAS product.
+ * @param {*} ProductTitle 
+ * @returns 
+ */
+const createProduct = ProductTitle => {
+  const params = {
+    Catalog: catalog,
+    ChangeSet: [{
+      ChangeType: CHANGE_TYPE.CREATE_PRODUCT,
+      Entity: {
+        Type: STRINGS.ENTITY_TYPE_PRODUCT
+      },
+      Details: JSON.stringify({ ProductTitle })
+    }]
+  }
+  logger.debug("Create Product params", { params });
+  return mpCatalog.startChangeSet(params).promise();
+}
+
+const getOfferId = async (productId) => {
+  logger.info("Getting Offer Id from Product Id", { data: productId });
+  const result = await mpCatalog.listEntities({
+    Catalog: catalog,
+    EntityType: STRINGS.ENTITY_TYPE_OFFER_ONLY,
+    FilterList: [{
+      Name: "ProductId",
+      ValueList: [productId]
+    }]
+  }).promise();
+  result["EntitySummaryList"] = result["EntitySummaryList"] || [];
+  if (result["EntitySummaryList"].length > 0) {
+    return result["EntitySummaryList"][0]["EntityId"];
+  }
+  return null;
 }
 
 const updateFulfilmentURL = async (Identifier, FulfillmentUrl) => {
@@ -97,8 +135,8 @@ const updateProductInfo = async (Identifier, productInfo) => {
   }).promise();
 }
 
-const updateAllowedAWSAccount = async (Identifier, BuyerAccounts) => {
-  return mpCatalog.startChangeSet({
+const updateAllowedAWSAccount = (Identifier, BuyerAccounts) => {
+  const params = {
     Catalog: catalog,
     ChangeSet: [{
       ChangeType: CHANGE_TYPE.UPDATE_TARGETING,
@@ -112,10 +150,12 @@ const updateAllowedAWSAccount = async (Identifier, BuyerAccounts) => {
         }
       })
     }]
-  }).promise();
+  };
+  logger.debug("Update Allowed AWS Account params", { params });
+  return mpCatalog.startChangeSet().promise();
 }
 
-const updateAllowedCountries = async (Identifier, CountryCodes) => {
+const updateAllowedCountries = (Identifier, CountryCodes) => {
   let targetCountriesDetails = {};
   if (typeof CountryCodes == "object" && CountryCodes.length > 0) {
     targetCountriesDetails = {
@@ -139,20 +179,24 @@ const updateAllowedCountries = async (Identifier, CountryCodes) => {
   return mpCatalog.startChangeSet(param).promise();
 }
 
-const createOffer = async (ProductId) => {
-  return mpCatalog.startChangeSet({
+const createOffer = ProductId => {
+  const params = {
     Catalog: catalog,
     ChangeSet: [{
-      ChangeType: CHANGE_TYPE.ACTION_CREATE_OFFER,
+      ChangeType: CHANGE_TYPE.CREATE_OFFER,
       Entity: {
         Type: STRINGS.ENTITY_TYPE_OFFER,
       },
       Details: JSON.stringify({ ProductId })
     }]
-  }).promise();
+  };
+  logger.debug("Create Offer params", { params });
+  return mpCatalog.startChangeSet(param).promise();
 }
 
-const updateLegalTerm = async (OfferId, data) => {
+
+
+const updateLegalTerm = (OfferId, data) => {
   let EULADocument = {};
   switch (data.type.toLowerCase()) {
     case EULA_TYPE.EULA_STANDARD.toLowerCase():
@@ -188,7 +232,7 @@ const updateLegalTerm = async (OfferId, data) => {
   return mpCatalog.startChangeSet(param).promise();
 }
 
-const updateSupportTerm = async (OfferId, RefundPolicy) => {
+const updateSupportTerm = (OfferId, RefundPolicy) => {
   const param = {
     Catalog: catalog,
     ChangeSet: [{
@@ -208,6 +252,106 @@ const updateSupportTerm = async (OfferId, RefundPolicy) => {
   logger.debug("Update Support Term", { param });
   return mpCatalog.startChangeSet(param).promise();
 }
+
+const releaseOffer = (Identifier) => {
+  const param = {
+    Catalog: catalog,
+    ChangeSet: [{
+      ChangeType: CHANGE_TYPE.RELEASE_OFFER,
+      Entity: {
+        Type: STRINGS.ENTITY_TYPE_OFFER,
+        Identifier
+      },
+      Details: JSON.stringify({})
+    }]
+  };
+  logger.debug("Release Offer Params", { params });
+  return mpCatalog.startChangeSet(param).promise();
+}
+
+const addDimension = async (ProductId, dimension) => {
+  const uid = Date.now();
+  dimension.key = dimension.key + "_" + uid
+  logger.info("Adding Dimension to product", {
+    data: {
+      ProductId,
+      dimension
+    }
+  });
+  const offerId = await getOfferId(ProductId);
+  if (offerId) {
+    const dimensionParam = {
+      Key: dimension.key,
+      Description: dimension.description,
+      Name: dimension.name,
+      Types: dimension.type,
+      Unit: dimension.unit
+    };
+
+    const response = await describeMP(offerId);
+    const details = JSON.parse(response["Details"]);
+    const terms = details["Terms"];
+    const termParam = {
+      PricingModel: dimension.pricingModel,
+      Terms: []
+    };
+
+    let updateTerm = {
+      "Type": "ConfigurableUpfrontPricingTerm",
+      "CurrencyCode": dimension.currencyCode,
+      "RateCards": [{
+        "Selector": {
+          "Type": "Duration",
+          "Value": "P1M"
+        },
+        "Constraints": {
+          "MultipleDimensionSelection": dimension.multipleDimensionSelection,
+          "QuantityConfiguration": dimension.quantityConfiguration
+        },
+        "RateCard": []
+      }]
+    };
+
+    for (const term of terms) {
+      if (term["Type"] == "ConfigurableUpfrontPricingTerm") {
+        updateTerm = term;
+        break
+      }
+    }
+    updateTerm.RateCards[0].RateCard.push({
+      "DimensionKey": dimension.key,
+      "Price": dimension.price
+    })
+    termParam.Terms.push(updateTerm);
+    logger.debug("Adding Pricing Dimension", { dimensionParam });
+    logger.debug("Update offer term", { termParam });
+
+    const addDimensionChangeset = {
+      ChangeType: CHANGE_TYPE.ADD_DIMENSION,
+      Entity: {
+        Type: STRINGS.ENTITY_TYPE_PRODUCT,
+        Identifier: ProductId
+      },
+      Details: JSON.stringify([dimensionParam])
+    };
+
+    const updatePricingTermChangeset = {
+      ChangeType: CHANGE_TYPE.UPDATE_PRICING_TERM,
+      Entity: {
+        Type: STRINGS.ENTITY_TYPE_OFFER,
+        Identifier: offerId
+      },
+      Details: JSON.stringify(termParam)
+    }
+    const changeParam = {
+      Catalog: catalog,
+      ChangeSet: [addDimensionChangeset, updatePricingTermChangeset]
+    };
+    logger.debug("Add Pricing Dimension params", { params: changeParam });
+    return mpCatalog.startChangeSet(changeParam).promise();
+  }
+  return null;
+}
 exports.handler = async (event) => {
   let result = {
     "Available Actions": [
@@ -220,6 +364,14 @@ exports.handler = async (event) => {
     logger.info("Got request type", { data: request.type.toLowerCase() });
 
     switch (request.type.toLowerCase()) {
+      // Create API
+      case STRINGS.ACTION_CREATE_PRODUCT.toLowerCase():
+        result = await createProduct(request.data.productTitle);
+        break;
+      case STRINGS.ACTION_CREATE_OFFER.toLowerCase():
+        result = await createOffer(request.entityId);
+        break;
+
       // Get API
       case STRINGS.ACTION_GET_PRODUCT_DETAILS.toLowerCase():
         result = await describeMP(request.entityId);
@@ -227,7 +379,9 @@ exports.handler = async (event) => {
       case STRINGS.ACTION_GET_OFFER_DETAILS.toLowerCase():
         result = await describeMP(request.entityId);
         break;
-
+      case STRINGS.ACTION_GET_OFFER_DETAILS_BY_PRODUCT_ID.toLowerCase():
+        result = await getOfferId(request.entityId);
+        break;
       // Update api for Products
       case STRINGS.ACTION_UPDATE_FULFILMENT.toLowerCase():
         result = await updateFulfilmentURL(request.entityId, request.data.url);
@@ -238,11 +392,12 @@ exports.handler = async (event) => {
       case STRINGS.ACTION_UPDATE_ALLOWED_AWS_ACCOUNT.toLowerCase():
         result = await updateAllowedAWSAccount(request.entityId, request.data.allowedAWSAccounts);
         break;
+      case STRINGS.ACTION_ADD_DIMENSION.toLowerCase():
+        result = await addDimension(request.entityId, request.data);
+        break;
 
       // Update api for Offers
-      case STRINGS.ACTION_CREATE_OFFER.toLowerCase():
-        result = await createOffer(request.entityId);
-        break;
+
       case STRINGS.ACTION_UPDATE_ALLOWED_COUNTRIES.toLowerCase():
         console.log("hi")
         result = await updateAllowedCountries(request.entityId, request.data);
@@ -253,17 +408,18 @@ exports.handler = async (event) => {
       case STRINGS.ACTION_UPDATE_LEGAL_TERM.toLowerCase():
         result = await updateLegalTerm(request.entityId, request.data);
         break;
+      case STRINGS.ACTION_RELEASE_OFFER.toLowerCase():
+        result = await releaseOffer(request.entityId);
+        break;
     }
   } catch (e) {
-    throw (e);
-    logger.error("Error", { "data": e.message });
+    logger.error("Error", { "data": e });
+    // throw e
   }
   logger.debug("Result", { data: result });
   return SendResponse(JSON.stringify(result));
 }
 
-// const params = require("./events/update_offer_availibility_by_country.json");
-// console.log(params);
-// exports.handler({
-//   body: JSON.stringify(params)
-// })
+exports.handler({
+  body: JSON.stringify(require("./events/create_product.json"))
+})
