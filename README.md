@@ -107,32 +107,38 @@ The host/method and auth is common to all APIs
 Below are the list of function created for integration of **AWS Marketplace**.
 
   1. **RedirectToRegister(register.js)**
-  This is a edge lambda used for redirect user to registration form.
+    This is a edge lambda used for redirect user to registration form.
 
   2. **GrantRevokeAccess(grant-revoke-access-to-product.js)**
-  This function get triggerd via DynamoDB Stream to evaluate request type of
-  - User Subscribe
-  - Entitlement Updated
-  - User Unsubscribe
+    This function get triggerd via DynamoDB Stream to evaluate request type of
+    - User Subscribe
+    - Entitlement Updated
+    - User Unsubscribe
 
   3. **SubscribeUser(subscribe-user.js)**
-  This function will save user data in DDB recieved via form either filled by user or recieved from AWS Marketplace.
+    This function will save user data in DDB recieved via form either filled by user or recieved from AWS Marketplace.
 
   4. **SetupResources(setup-resources.js)**
-  This function will listen the SupportSNS Topic, send email to support admin and will start setup the environment.
-
-  This function notify admin on any entitlement updated and will setup the resources if required OR send notificaion to any other SNS/SQS/EventBridge to notify.
+    This function will listen the SupportSNS Topic, send email to support admin and will start setup the environment.
+    This function notify admin on any entitlement updated and will setup the resources if required OR send notificaion to any other SNS/SQS/EventBridge to notify.
 
   5. **Entitlement(entitlement-sqs.js)**
-  This function listen SQS Queue to get data when a user change the contract, subscribe or unsubscribe.
+    This function listen SQS Queue to get data when a user change the contract, subscribe or unsubscribe.
 
   6. **MeteringHourlyJob(meteringHourlyJob.js)**
-  This function is called via cloudwatch event to send ussage of resources to AWS Marketplace Hourly. 
+    This function is called via cloudwatch event to send ussage of resources to AWS Marketplace Hourly. 
 
   7. **AdminJobs(admin.js)**
-  This function is used to do admin related jobs like
-  - Update fulfilment URL.
-  - Update product info.
+    This function is used to do admin related jobs like
+    - Get Product Details
+    - Get Offer Details
+    - Update fulfilment URL.
+    - Update product info.
+    - Update allowed aws accounts.
+    - Create Offer.
+    - Update allowed Countries.
+    - Update Support Terms.
+    - Update Legal Terms.
 
 # Resource Created
   1. SAAS Product on AWS Marketplace
