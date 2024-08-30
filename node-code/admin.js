@@ -1,20 +1,17 @@
 "use strict";
-const AWS = require('aws-sdk');
 const { SendResponse, logger } = require("./utils");
 const {
   AWS_MP,
   CHANGE_TYPE,
   EULA_TYPE,
-  STRINGS
+  STRINGS,
+  ENTITY_TYPE
 } = require("./constants");
 
-const { catalog, mp_region } = AWS_MP;
-AWS.config.update({ region: mp_region });
-
-const mpCatalog = new AWS.MarketplaceCatalog();
-
-const describeMP = async (EntityId) => {
-  return mpCatalog.describeEntity({
+const { catalog } = AWS_MP;
+const CatalogService = require("./services/catalog-service")();
+const describeMP = async EntityId => {
+  return CatalogService.describeEntity({
     Catalog: catalog,
     EntityId
   }).promise();
@@ -26,26 +23,33 @@ const describeMP = async (EntityId) => {
  * @param {*} ProductTitle 
  * @returns 
  */
-const createProduct = ProductTitle => {
+const createProduct = async ProductTitle => {
+  const allProducts = await listProducts("");
+  const productNames = allProducts.map(product => {
+    return product["Name"].toLowerCase();
+  });
+  if(productNames.indexOf(ProductTitle.toLowerCase()) > -1){
+    throw new Error("Product Title already Exists");
+  }
   const params = {
     Catalog: catalog,
     ChangeSet: [{
       ChangeType: CHANGE_TYPE.CREATE_PRODUCT,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_PRODUCT
+        Type: ENTITY_TYPE.PRODUCT
       },
       Details: JSON.stringify({ ProductTitle })
     }]
   }
   logger.debug("Create Product params", { params });
-  return mpCatalog.startChangeSet(params).promise();
+  return CatalogService.startChangeSet(params).promise();
 }
 
 const getOfferId = async (productId) => {
   logger.info("Getting Offer Id from Product Id", { data: productId });
-  const result = await mpCatalog.listEntities({
+  const result = await CatalogService.listEntities({
     Catalog: catalog,
-    EntityType: STRINGS.ENTITY_TYPE_OFFER_ONLY,
+    EntityType: ENTITY_TYPE.OFFER.split("@")[0],
     FilterList: [{
       Name: "ProductId",
       ValueList: [productId]
@@ -72,7 +76,7 @@ const updateFulfilmentURL = async (Identifier, FulfillmentUrl) => {
   let change = {
     ChangeType: fullfilmentId == null ? CHANGE_TYPE.ADD_DELIVERY_OPTION : CHANGE_TYPE.UPDATE_DELIVERY_OPTION,
     Entity: {
-      Type: STRINGS.ENTITY_TYPE_PRODUCT,
+      Type: ENTITY_TYPE.PRODUCT,
       Identifier
     },
     Details: {
@@ -102,10 +106,8 @@ const updateFulfilmentURL = async (Identifier, FulfillmentUrl) => {
     Catalog: catalog,
     ChangeSet: [change]
   };
-  logger.debug("update fulfilment url params", {
-    data: params
-  })
-  return mpCatalog.startChangeSet(params).promise();
+  logger.debug("update fulfilment url params", { params });
+  return CatalogService.startChangeSet(params).promise();
 }
 
 const updateProductInfo = async (Identifier, productInfo) => {
@@ -121,18 +123,19 @@ const updateProductInfo = async (Identifier, productInfo) => {
   details.Sku = productInfo.sku;
   details.VideoUrls = productInfo.videoUrls;
   details.ProductTitle = productInfo.productTitle;
-
-  return mpCatalog.startChangeSet({
+  const params = {
     Catalog: catalog,
     ChangeSet: [{
       ChangeType: CHANGE_TYPE.UPDATE_INFORMATION,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_PRODUCT,
+        Type: ENTITY_TYPE.PRODUCT,
         Identifier
       },
       Details: JSON.stringify(details)
     }]
-  }).promise();
+  };
+  logger.debug("Update Product Info params", { params });
+  return CatalogService.startChangeSet(params).promise();
 }
 
 const updateAllowedAWSAccount = (Identifier, BuyerAccounts) => {
@@ -141,7 +144,7 @@ const updateAllowedAWSAccount = (Identifier, BuyerAccounts) => {
     ChangeSet: [{
       ChangeType: CHANGE_TYPE.UPDATE_TARGETING,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_PRODUCT,
+        Type: ENTITY_TYPE.PRODUCT,
         Identifier
       },
       Details: JSON.stringify({
@@ -152,7 +155,7 @@ const updateAllowedAWSAccount = (Identifier, BuyerAccounts) => {
     }]
   };
   logger.debug("Update Allowed AWS Account params", { params });
-  return mpCatalog.startChangeSet().promise();
+  return CatalogService.startChangeSet(params).promise();
 }
 
 const updateAllowedCountries = (Identifier, CountryCodes) => {
@@ -169,14 +172,14 @@ const updateAllowedCountries = (Identifier, CountryCodes) => {
     ChangeSet: [{
       ChangeType: CHANGE_TYPE.UPDATE_TARGETING,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_OFFER,
+        Type: ENTITY_TYPE.OFFER,
         Identifier
       },
       Details: JSON.stringify(targetCountriesDetails)
     }]
   };
   logger.debug("Update Allowed Countries", { param });
-  return mpCatalog.startChangeSet(param).promise();
+  return CatalogService.startChangeSet(param).promise();
 }
 
 const createOffer = ProductId => {
@@ -185,16 +188,14 @@ const createOffer = ProductId => {
     ChangeSet: [{
       ChangeType: CHANGE_TYPE.CREATE_OFFER,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_OFFER,
+        Type: ENTITY_TYPE.OFFER,
       },
       Details: JSON.stringify({ ProductId })
     }]
   };
   logger.debug("Create Offer params", { params });
-  return mpCatalog.startChangeSet(param).promise();
+  return CatalogService.startChangeSet(params).promise();
 }
-
-
 
 const updateLegalTerm = (OfferId, data) => {
   let EULADocument = {};
@@ -217,7 +218,7 @@ const updateLegalTerm = (OfferId, data) => {
     ChangeSet: [{
       ChangeType: CHANGE_TYPE.UPDATE_LEGAL_TERM,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_OFFER,
+        Type: ENTITY_TYPE.OFFER,
         Identifier: OfferId
       },
       Details: JSON.stringify({
@@ -229,7 +230,26 @@ const updateLegalTerm = (OfferId, data) => {
     }]
   };
   logger.debug("Update EULA Params", { param });
-  return mpCatalog.startChangeSet(param).promise();
+  return CatalogService.startChangeSet(param).promise();
+}
+const updateRenewalTerm = (Identifier) => {
+  const param = {
+    Catalog: catalog,
+    ChangeSet: [{
+      ChangeType: CHANGE_TYPE.UPDATE_RENEWAL_TERM,
+      Entity: {
+        Type: ENTITY_TYPE.OFFER,
+        Identifier
+      },
+      Details: JSON.stringify({
+        "Terms": [{
+          Type: "RenewalTerm"
+        }]
+      })
+    }]
+  };
+  logger.debug("Update Support Term", { param });
+  return CatalogService.startChangeSet(param).promise();
 }
 
 const updateSupportTerm = (OfferId, RefundPolicy) => {
@@ -238,7 +258,7 @@ const updateSupportTerm = (OfferId, RefundPolicy) => {
     ChangeSet: [{
       ChangeType: CHANGE_TYPE.UPDATE_SUPPORT_TERM,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_OFFER,
+        Type: ENTITY_TYPE.OFFER,
         Identifier: OfferId
       },
       Details: JSON.stringify({
@@ -250,23 +270,30 @@ const updateSupportTerm = (OfferId, RefundPolicy) => {
     }]
   };
   logger.debug("Update Support Term", { param });
-  return mpCatalog.startChangeSet(param).promise();
+  return CatalogService.startChangeSet(param).promise();
 }
 
-const releaseOffer = (Identifier) => {
-  const param = {
+const releaseOffer = (ProductId, OfferId) => {
+  const params = {
     Catalog: catalog,
     ChangeSet: [{
+      ChangeType: CHANGE_TYPE.RELEASE_PRODUCT,
+      Entity: {
+        Type: ENTITY_TYPE.PRODUCT,
+        Identifier: ProductId
+      },
+      Details: JSON.stringify({})
+    }, {
       ChangeType: CHANGE_TYPE.RELEASE_OFFER,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_OFFER,
-        Identifier
+        Type: ENTITY_TYPE.OFFER,
+        Identifier: OfferId
       },
       Details: JSON.stringify({})
     }]
   };
   logger.debug("Release Offer Params", { params });
-  return mpCatalog.startChangeSet(param).promise();
+  return CatalogService.startChangeSet(params).promise();
 }
 
 const addDimension = async (ProductId, dimension) => {
@@ -321,7 +348,8 @@ const addDimension = async (ProductId, dimension) => {
     updateTerm.RateCards[0].RateCard.push({
       "DimensionKey": dimension.key,
       "Price": dimension.price
-    })
+    });
+
     termParam.Terms.push(updateTerm);
     logger.debug("Adding Pricing Dimension", { dimensionParam });
     logger.debug("Update offer term", { termParam });
@@ -329,7 +357,7 @@ const addDimension = async (ProductId, dimension) => {
     const addDimensionChangeset = {
       ChangeType: CHANGE_TYPE.ADD_DIMENSION,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_PRODUCT,
+        Type: ENTITY_TYPE.PRODUCT,
         Identifier: ProductId
       },
       Details: JSON.stringify([dimensionParam])
@@ -338,7 +366,7 @@ const addDimension = async (ProductId, dimension) => {
     const updatePricingTermChangeset = {
       ChangeType: CHANGE_TYPE.UPDATE_PRICING_TERM,
       Entity: {
-        Type: STRINGS.ENTITY_TYPE_OFFER,
+        Type: ENTITY_TYPE.OFFER,
         Identifier: offerId
       },
       Details: JSON.stringify(termParam)
@@ -348,20 +376,81 @@ const addDimension = async (ProductId, dimension) => {
       ChangeSet: [addDimensionChangeset, updatePricingTermChangeset]
     };
     logger.debug("Add Pricing Dimension params", { params: changeParam });
-    return mpCatalog.startChangeSet(changeParam).promise();
+    return CatalogService.startChangeSet(changeParam).promise();
   }
   return null;
 }
+
+const addTags = (ResourceArn, Tags) => {
+  const params = {
+    ResourceArn,
+    Tags
+  };
+  logger.debug("Add Tags params", { params });
+  return CatalogService.tagResource(params).promise();
+}
+
+const deleteTags = (ResourceArn, TagKeys) => {
+  const params = {
+    ResourceArn,
+    TagKeys
+  };
+  logger.debug("Add Tags params", { params });
+  return CatalogService.untagResource(params).promise();
+}
+
+const updateOfferInformation = (Identifier, data) => {
+  const params = {
+    Catalog: catalog,
+    ChangeSet: [{
+      ChangeType: CHANGE_TYPE.UPDATE_INFORMATION,
+      Entity: {
+        Type: ENTITY_TYPE.OFFER,
+        Identifier
+      },
+      Details: JSON.stringify({
+        Name: data.name,
+        Description: data.description,
+        PreExistingAgreement: null
+      })
+    }]
+  };
+  logger.debug("Update Offer Information Params", { params });
+  return CatalogService.startChangeSet(params).promise();
+}
+
+const listProducts = async (NextToken) => {
+  let responses = [];
+  while (NextToken != null) {
+    const params = {
+      Catalog: catalog,
+      EntityType: ENTITY_TYPE.PRODUCT.split("@")[0],
+      NextToken: NextToken.length > 0 ? NextToken: null
+    };
+    const result = await CatalogService.listEntities(params).promise();
+    NextToken = result["NextToken"];
+    responses = [...responses, ...result["EntitySummaryList"]];
+  }
+  return responses;
+}
+
+const getProductDetailByTitle = async ProductTitle => {
+    const products = await listProducts("");
+    for(const product of products){
+      if(product.Name === ProductTitle){
+        return product;
+      }
+    }
+    return null;
+}
 exports.handler = async (event) => {
   let result = {
-    "Available Actions": [
-      STRINGS.ACTION_UPDATE_FULFILMENT
-    ]
+    "Available Actions": Object.values(STRINGS)
   };
-  logger.info("body", { data: event.body });
+  logger.info("Event Body", { body: event.body });
   try {
     const request = JSON.parse(event.body);
-    logger.info("Got request type", { data: request.type.toLowerCase() });
+    logger.info("Got request type", { type: request.type.toLowerCase() });
 
     switch (request.type.toLowerCase()) {
       // Create API
@@ -373,6 +462,9 @@ exports.handler = async (event) => {
         break;
 
       // Get API
+      case STRINGS.ACTION_GET_PRODUCT_DETAILS_BY_TITLE.toLowerCase():
+        result = await getProductDetailByTitle(request.data.title);
+        break;
       case STRINGS.ACTION_GET_PRODUCT_DETAILS.toLowerCase():
         result = await describeMP(request.entityId);
         break;
@@ -382,7 +474,11 @@ exports.handler = async (event) => {
       case STRINGS.ACTION_GET_OFFER_DETAILS_BY_PRODUCT_ID.toLowerCase():
         result = await getOfferId(request.entityId);
         break;
-      // Update api for Products
+      case STRINGS.ACTION_LIST_PRODUCTS.toLowerCase():
+        result = await listProducts("");
+        break;
+      
+        // Update api for Products
       case STRINGS.ACTION_UPDATE_FULFILMENT.toLowerCase():
         result = await updateFulfilmentURL(request.entityId, request.data.url);
         break;
@@ -397,7 +493,6 @@ exports.handler = async (event) => {
         break;
 
       // Update api for Offers
-
       case STRINGS.ACTION_UPDATE_ALLOWED_COUNTRIES.toLowerCase():
         console.log("hi")
         result = await updateAllowedCountries(request.entityId, request.data);
@@ -408,18 +503,32 @@ exports.handler = async (event) => {
       case STRINGS.ACTION_UPDATE_LEGAL_TERM.toLowerCase():
         result = await updateLegalTerm(request.entityId, request.data);
         break;
+      case STRINGS.ACTION_UPDATE_RENEWAL_TERM.toLowerCase():
+        result = await updateRenewalTerm(request.entityId);
+        break;
       case STRINGS.ACTION_RELEASE_OFFER.toLowerCase():
-        result = await releaseOffer(request.entityId);
+        result = await releaseOffer(request.productId, request.offerId);
+        break;
+      case STRINGS.ACTION_UPDATE_OFFER_INFORMATION.toLowerCase():
+        result = await updateOfferInformation(request.entityId, request.data);
+        break;
+
+      // Tags
+      case STRINGS.ACTION_ADD_TAGS.toLowerCase():
+        result = await addTags(request.entityARN, request.data.tags);
+        break;
+      case STRINGS.ACTION_DELETE_TAGS.toLowerCase():
+        result = await deleteTags(request.entityARN, request.data.tags);
         break;
     }
   } catch (e) {
-    logger.error("Error", { "data": e });
+    logger.error("Error", { "message": e.message });
+    result = {
+      "error": true,
+      "message": e.message || "Internal Server Error"
+    }
     // throw e
   }
   logger.debug("Result", { data: result });
   return SendResponse(JSON.stringify(result));
 }
-
-exports.handler({
-  body: JSON.stringify(require("./events/create_product.json"))
-})

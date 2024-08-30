@@ -1,7 +1,6 @@
-service: aws-marketplace-integration
+service: aws-marketplace-integration-admin
 
 custom:
-  config: ${file(./config.json)}
   cors:
     origin: "*"
     headers:
@@ -19,19 +18,11 @@ custom:
 provider:
   name: aws
   runtime: nodejs18.x
-  region: ap-south-1
+  region: us-east-1
   stage: dev
   environment:
-    webpageDomain: https://test-bucket-sf-marketplace.s3.ap-south-1.amazonaws.com
-    webpageURL: https://test-bucket-sf-marketplace.s3.ap-south-1.amazonaws.com/index.html
-    aws_region: ap-south-1
     mp_region: us-east-1
-    userTable: AWSMarketplaceSubscribers
     LOG_LEVEL: debug
-    SMTP_USER: ${self:custom.config.smtp_user}
-    SMTP_PASSWORD: ${self:custom.config.smtp_password}
-    SMTP_HOST: ${self:custom.config.smtp_host}
-    AWSMarketplaceADMIN: ${self:custom.config.marketplaceAdminEmail}
     
   iam:
     role:
@@ -52,145 +43,11 @@ provider:
         rateLimit: 5
 
 functions:
-  RedirectToRegister:
-    handler: redirect.handler
-    events:
-      - http:
-          path: register
-          method: post
-  GrantRevokeAccess:
-    handler: grant-revoke-access-to-product.handler
-    environment:
-      SupportSNSARN: !Ref SupportSNS
-    events:
-      - stream:
-          type: dynamodb
-          batchSize: 1
-          startingPosition: LATEST
-          arn:
-            Fn::GetAtt:
-              - AWSMarketplaceSubscribers
-              - StreamArn
-  SubscribeUser:
-    handler: subscribe-user.handler
-    events:
-      - http:
-          path: subscribe
-          method: post
-          private: true
-          cors: ${self:custom.cors}
-  Entitlement:
-    handler: entitlement-sqs.handler
-    events:
-      - sqs:
-          arn: !GetAtt AWSMarketplaceEntitlementQueue.Arn
-  MeteringHourlyJob:
-    handler: meteringHourlyJob.handler
-    events:
-      - schedule:
-          rate: rate(24 hours)
-          enabled: true
   AdminJobs:
     handler: admin.handler
-    environment:
-      aws_mp_product_code: ${self:custom.config.aws_mp_product_code}
     events:
       - http:
           path: admin
           method: post
           private: true
           cors: ${self:custom.cors}
-  SetupResources:
-    handler: setup-resources.handler
-    events:
-      - sns:
-          arn: !Ref SupportSNS
-          topicName: SupportSNSTopic
-  UpdateProductInfo:
-    handler: set-product-info.handler
-    environment:
-      EntityId: ${self:custom.config.EntityId}
-      EntityARN: ${self:custom.config.EntityARN}
-      OfferId: ${self:custom.config.OfferId}
-
-resources: # CloudFormation template syntax from here on.
-  Resources:
-    AWSMarketplaceSubscribers:
-      Type: AWS::DynamoDB::Table
-      DeletionPolicy: Retain
-      Properties:
-        TableName: AWSMarketplaceSubscribers
-        AttributeDefinitions:
-          - AttributeName: customerIdentifier
-            AttributeType: S
-        KeySchema:
-          - AttributeName: customerIdentifier
-            KeyType: HASH
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-        StreamSpecification:
-          StreamViewType: NEW_AND_OLD_IMAGES
-    AWSMarketplaceMeteringRecords:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: AWSMarketplaceMeteringRecords
-        AttributeDefinitions:
-          - AttributeName: customerIdentifier
-            AttributeType: S
-          - AttributeName: create_timestamp
-            AttributeType: N
-        KeySchema:
-          - AttributeName: customerIdentifier
-            KeyType: HASH
-          - AttributeName: create_timestamp
-            KeyType: RANGE
-        ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
-    AWSMarketplaceEntitlementQueue:
-      Type: "AWS::SQS::Queue"
-      Properties:
-        QueueName: ${self:provider.stage}-marketplace-entitlement-messages
-        DelaySeconds: 0
-        MessageRetentionPeriod: 345600 # 4 days
-        VisibilityTimeout: 30
-    SupportSNS:
-      Type: AWS::SNS::Topic
-      Properties:
-        DisplayName: 'Support SNS'
-        TopicName: SupportSNSTopic
-    UpdateProductInfo:
-      Type: Custom::UpdateProductInfo
-      Properties:
-        ServiceToken: !GetAtt UpdateProductInfoLambdaFunction.Arn
-        key: V1
-    # SNSTopicToMyQueuePolicy:
-    #   Type: AWS::SQS::QueuePolicy
-    #   Properties:
-    #     PolicyDocument:
-    #       Version: '2012-10-17'
-    #       Statement:
-    #         - Sid: 'allow-sns-messages'
-    #           Effect: Allow
-    #           Principal:
-    #             Service: 'sns.amazonaws.com'
-    #           Resource:
-    #             Fn::GetAtt:
-    #             - AWSMarketplaceEntitlementQueue
-    #             - Arn
-    #           Action: 'SQS:SendMessage'
-    #           Condition:
-    #             ArnEquals:
-    #               'aws:SourceArn':
-    #                 Ref: arn:aws:sns:us-east-1:287250355862:aws-mp-entitlement-notification-8p9kre7hksxi66ebncc9j2xdz
-    # QueueSubscription:
-    #   Type: AWS::SNS::Subscription
-    #   Properties:
-    #     TopicArn: arn:aws:sns:us-east-1:287250355862:aws-mp-entitlement-notification-8p9kre7hksxi66ebncc9j2xdz
-    #     Endpoint:
-    #       Fn::GetAtt:
-    #         - AWSMarketplaceEntitlementQueue
-    #         - Arn
-    #     Protocol: sqs
-    #     RawMessageDelivery: true

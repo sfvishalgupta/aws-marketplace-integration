@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc --outDir bin",
-    "make-config": "aws ssm get-parameter --name MarketplaceDevConfig --query 'Parameter' | jq -rc '.Value ' > config.json",
+    "make-config": "aws ssm get-parameter --name /mp/poc/MarketplaceDevConfig --query 'Parameter' | jq -rc '.Value ' > config.json",
+    "upload-config": "aws ssm put-parameter --name '/mp/poc/MarketplaceDevConfig' --type 'String'  --value 'file://config.json' --overwrite",
     "deploy": "npm run tsc && npm run s3-sync && sls deploy",
     "s3-sync": "export UIBucketName=$(jq -rc .UIBucketName < config.json) && cd ../web && aws s3 cp --recursive ./ s3://$UIBucketName --acl public-read"
   },

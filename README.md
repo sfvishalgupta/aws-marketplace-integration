@@ -83,7 +83,12 @@ The host/method and auth is common to all APIs
   - **Update fulfilment**
     This api will update the fulfilment URL of product, ([Sample Payload](./node-code/events/update_fulfilment.json)) 
   - **Update AWS Allowed Account** 
-    This api will update allowed aws account for a product visibility, ([Sample Payload](./node-code/events/update_allowed_aws_account.json)) 
+    This api will update allowed aws account for a product, ([Sample Payload](./node-code/events/update_allowed_aws_account.json)) 
+  - **Release Product**
+  - **Add Tags**
+    This api will add new tags to a product visibility, ([Sample Payload](./node-code/events/add_tags.json)) 
+  - **Delete Tags**
+    This api will delete existing tags to a product, ([Sample Payload](./node-code/events/delete_tags.json)) 
 
   ### Offer API.
   - **Get Offer Details By ID**
@@ -100,6 +105,8 @@ The host/method and auth is common to all APIs
       1. Refund Policy ([Sample Payload](./node-code/events/update_support_term.json))
   - **Update Offer Availability By Country**
     This api will update list of countries by availability, ([Sample Payload](./node-code/events/update_support_term.json))
+  - **Update Offer Information**
+  - **Release Offer**
 
 
 ## Architecture Diagram
