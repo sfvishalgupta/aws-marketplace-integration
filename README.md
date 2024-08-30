@@ -62,7 +62,7 @@ To setup and deploy code follow below step.
     ```
 5. Run below command to deploy the code
   ```bash
-    sls deploy
+  sls deploy
   ```
 
 ### Admin APIs
@@ -75,31 +75,29 @@ The host/method and auth is common to all APIs
   Auth:-    private
 ```
 
-#### Product API
-- **Get Product Detail By Id**
-  This api will return the product details by productId, ([Sample Payload](./node-code/events/get_product_details_by_id.json)) 
-- **Update Product Details**
-  This api will update the product details, ([Sample Payload](./node-code/events/update_product_details.json)) 
-- **Update fulfilment**
-  This api will update the fulfilment URL of product, ([Sample Payload](./node-code/events/update_fulfilment.json)) 
-- **Update AWS Allowed Account** 
-  This api will update allowed aws account for a product visibility, ([Sample Payload](./node-code/events/update_allowed_aws_account.json)) 
+  #### Product API
+  - **Get Product Detail By Id**
+    This api will return the product details by productId, ([Sample Payload](./node-code/events/get_product_details_by_id.json)) 
+  - **Update Product Details**
+    This api will update the product details, ([Sample Payload](./node-code/events/update_product_details.json)) 
+  - **Update fulfilment**
+    This api will update the fulfilment URL of product, ([Sample Payload](./node-code/events/update_fulfilment.json)) 
+  - **Update AWS Allowed Account** 
+    This api will update allowed aws account for a product visibility, ([Sample Payload](./node-code/events/update_allowed_aws_account.json)) 
 
-
-
-#### Offer API.
-- **Get Offer Details By ID**
-  This api will get the offer details by offer id, ([Sample Payload](./node-code/events/get_offer_details_by_id.json))
-- **Update Legal Term**
-  This api will update the legal terms in public offer.
-  Events:-
-  1. Standard EULA ([Sample Payload](./node-code/events/update_legal_term_standard_eula.json))
-  2. Custom EULA ([Sample Payload](./node-code/events/update_legal_term_custom_eula.json))
-- **Update Support Term**
-  This api will update the refund policy of a product.
-  1. Refund Policy ([Sample Payload](./node-code/events/update_support_term.json))
-- **Update Offer Availability By Country**
-  This api will update list of countries by availability, ([Sample Payload](./node-code/events/update_support_term.json))
+  #### Offer API.
+  - **Get Offer Details By ID**
+    This api will get the offer details by offer id, ([Sample Payload](./node-code/events/get_offer_details_by_id.json))
+  - **Update Legal Term**
+    This api will update the legal terms in public offer.
+    Events:-
+      1. Standard EULA ([Sample Payload](./node-code/events/update_legal_term_standard_eula.json))
+      2. Custom EULA ([Sample Payload](./node-code/events/update_legal_term_custom_eula.json))
+  - **Update Support Term**
+    This api will update the refund policy of a product.
+      1. Refund Policy ([Sample Payload](./node-code/events/update_support_term.json))
+  - **Update Offer Availability By Country**
+    This api will update list of countries by availability, ([Sample Payload](./node-code/events/update_support_term.json))
 
 
 ### Architecture Diagram
@@ -108,32 +106,41 @@ The host/method and auth is common to all APIs
 ## Functions Created
 Below are the list of function created for integration of **AWS Marketplace**.
 
-1. **RedirectToRegister(register.js)**
-This is a edge lambda used for redirect user to registration form.
+  1. **RedirectToRegister(register.js)**
+  This is a edge lambda used for redirect user to registration form.
 
-2. **GrantRevokeAccess(grant-revoke-access-to-product.js)**
-This function get triggerd via DynamoDB Stream to evaluate request type of
-- User Subscribe
-- Entitlement Updated
-- User Unsubscribe
+  2. **GrantRevokeAccess(grant-revoke-access-to-product.js)**
+  This function get triggerd via DynamoDB Stream to evaluate request type of
+  - User Subscribe
+  - Entitlement Updated
+  - User Unsubscribe
 
-3. **SubscribeUser(subscribe-user.js)**
-This function will save user data in DDB recieved via form either filled by user or recieved from AWS Marketplace.
+  3. **SubscribeUser(subscribe-user.js)**
+  This function will save user data in DDB recieved via form either filled by user or recieved from AWS Marketplace.
 
-4. **SetupResources(setup-resources.js)**
-This function will listen the SupportSNS Topic, send email to support admin and will start setup the environment.
+  4. **SetupResources(setup-resources.js)**
+  This function will listen the SupportSNS Topic, send email to support admin and will start setup the environment.
 
-This function notify admin on any entitlement updated and will setup the resources if required OR send notificaion to any other SNS/SQS/EventBridge to notify.
+  This function notify admin on any entitlement updated and will setup the resources if required OR send notificaion to any other SNS/SQS/EventBridge to notify.
 
-5. **Entitlement(entitlement-sqs.js)**
-This function listen SQS Queue to get data when a user change the contract, subscribe or unsubscribe.
+  5. **Entitlement(entitlement-sqs.js)**
+  This function listen SQS Queue to get data when a user change the contract, subscribe or unsubscribe.
 
-6. **MeteringHourlyJob(meteringHourlyJob.js)**
-This function is called via cloudwatch event to send ussage of resources to AWS Marketplace Hourly. 
+  6. **MeteringHourlyJob(meteringHourlyJob.js)**
+  This function is called via cloudwatch event to send ussage of resources to AWS Marketplace Hourly. 
 
-7. **AdminJobs(admin.js)**
-This function is used to do admin related jobs like
-- Update fulfilment URL.
-- Update product info.
+  7. **AdminJobs(admin.js)**
+  This function is used to do admin related jobs like
+  - Update fulfilment URL.
+  - Update product info.
 
+## Resource Created
+  1. SAAS Product on AWS Marketplace
+  2. API Gateway
+  3. Lambda Functions
+  4. Dynamodb Tables
+  5. SQS
+  6. SNS
+  7. S3 Bucket
+  8. Cloudwatch Event
 
