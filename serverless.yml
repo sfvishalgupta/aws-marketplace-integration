@@ -32,7 +32,7 @@ provider:
           Resource: "*"
   apiGateway:    
     apiKeys:
-      - mp_integration_${self:provider.stage}
+      - mp_integration_admin_${self:provider.stage}
     usagePlan:
       quota:
         limit: 10000

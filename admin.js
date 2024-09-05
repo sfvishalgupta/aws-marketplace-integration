@@ -28,7 +28,7 @@ const createProduct = async ProductTitle => {
   const productNames = allProducts.map(product => {
     return product["Name"].toLowerCase();
   });
-  if(productNames.indexOf(ProductTitle.toLowerCase()) > -1){
+  if (productNames.indexOf(ProductTitle.toLowerCase()) > -1) {
     throw new Error("Product Title already Exists");
   }
   const params = {
@@ -232,6 +232,7 @@ const updateLegalTerm = (OfferId, data) => {
   logger.debug("Update EULA Params", { param });
   return CatalogService.startChangeSet(param).promise();
 }
+
 const updateRenewalTerm = (Identifier) => {
   const param = {
     Catalog: catalog,
@@ -425,7 +426,7 @@ const listProducts = async (NextToken) => {
     const params = {
       Catalog: catalog,
       EntityType: ENTITY_TYPE.PRODUCT.split("@")[0],
-      NextToken: NextToken.length > 0 ? NextToken: null
+      NextToken: NextToken.length > 0 ? NextToken : null
     };
     const result = await CatalogService.listEntities(params).promise();
     NextToken = result["NextToken"];
@@ -434,15 +435,43 @@ const listProducts = async (NextToken) => {
   return responses;
 }
 
-const getProductDetailByTitle = async ProductTitle => {
-    const products = await listProducts("");
-    for(const product of products){
-      if(product.Name === ProductTitle){
-        return product;
-      }
-    }
-    return null;
+const updateDimensions = async (Identifier, data) => {
+  let dimensions = [];
+  for (const d of data) {
+    dimensions.push({
+      Key: d.key,
+      Name: d.name,
+      Description: d.description,
+      Types: [
+        "Entitled"
+      ]
+    });
+  }
+  const params = {
+    Catalog: catalog,
+    ChangeSet: [{
+      ChangeType: CHANGE_TYPE.UPDATE_DIMENSION,
+      Entity: {
+        Type: ENTITY_TYPE.PRODUCT,
+        Identifier
+      },
+      Details: JSON.stringify(dimensions)
+    }]
+  };
+  logger.info("Update Pricing Params", { params });
+  return await CatalogService.startChangeSet(params).promise();
 }
+
+const getProductDetailByTitle = async ProductTitle => {
+  const products = await listProducts("");
+  for (const product of products) {
+    if (product.Name === ProductTitle) {
+      return product;
+    }
+  }
+  return null;
+}
+
 exports.handler = async (event) => {
   let result = {
     "Available Actions": Object.values(STRINGS)
@@ -477,8 +506,8 @@ exports.handler = async (event) => {
       case STRINGS.ACTION_LIST_PRODUCTS.toLowerCase():
         result = await listProducts("");
         break;
-      
-        // Update api for Products
+
+      // Update api for Products
       case STRINGS.ACTION_UPDATE_FULFILMENT.toLowerCase():
         result = await updateFulfilmentURL(request.entityId, request.data.url);
         break;
@@ -511,6 +540,9 @@ exports.handler = async (event) => {
         break;
       case STRINGS.ACTION_UPDATE_OFFER_INFORMATION.toLowerCase():
         result = await updateOfferInformation(request.entityId, request.data);
+        break;
+      case STRINGS.ACTION_UPDATE_DIMENSION.toLowerCase():
+        result = await updateDimensions(request.entityId, request.data);
         break;
 
       // Tags

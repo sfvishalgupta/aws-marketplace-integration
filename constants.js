@@ -28,6 +28,7 @@ module.exports.STRINGS = {
   ACTION_UPDATE_PRODUCT_INFO: "updateProductInfo",
   ACTION_UPDATE_SUPPORT_TERM: "updateSupportTerm",
   ACTION_UPDATE_OFFER_INFORMATION: "updateOfferInformation",
+  ACTION_UPDATE_DIMENSION: "updateDimensions",
   ACTION_LIST_PRODUCTS: "listProducts"
 }
 
@@ -44,7 +45,8 @@ module.exports.CHANGE_TYPE = {
   UPDATE_RENEWAL_TERM: "UpdateRenewalTerms",
   UPDATE_SUPPORT_TERM: "UpdateSupportTerms",
   UPDATE_LEGAL_TERM: "UpdateLegalTerms",
-  UPDATE_PRICING_TERM:"UpdatePricingTerms"
+  UPDATE_PRICING_TERM:"UpdatePricingTerms",
+  UPDATE_DIMENSION: "UpdateDimensions"
 }
 
 module.exports.EULA_TYPE = {

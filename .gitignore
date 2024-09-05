@@ -10,3 +10,4 @@ product-config.json
 bin/
 *test*
 web/config.js
+package-lock.json
